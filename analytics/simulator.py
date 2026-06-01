@@ -60,11 +60,14 @@ def simulate_match(p1_hold: float, p2_hold: float, cfg: MatchConfig) -> tuple[in
 def handicap_cover_prob_mc(p1_hold: float, p2_hold: float, line: float,
                            cfg: MatchConfig, n_sims: int = 50000) -> float:
     """
-    Probability that player 1 covers handicap line (games_1 - games_2 > line)
+    line: handicap for player 1 (e.g. -6.5 means player 1 must win by > 6.5 games)
+    Returns P(player 1 covers the handicap).
     """
+    required_margin = -line  # convert -6.5 → +6.5
+
     wins = 0
     for _ in range(n_sims):
         g1, g2 = simulate_match(p1_hold, p2_hold, cfg)
-        if (g1 - g2) > line:
+        if (g1 - g2) > required_margin:
             wins += 1
     return wins / n_sims
