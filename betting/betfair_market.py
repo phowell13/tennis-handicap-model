@@ -1,11 +1,10 @@
-# betting/betfair_market.py
 from dataclasses import dataclass
 
 @dataclass
 class HandicapMarket:
-    line: float   # Sabalenka -X.5
-    price_a: float  # Sabalenka -X.5
-    price_b: float  # Osaka +X.5
+    line: float
+    price_a: float
+    price_b: float
 
     @property
     def implied_prob_a(self):
@@ -18,4 +17,3 @@ class HandicapMarket:
 def edge(model_p: float, market_price: float) -> float:
     fair_price = 1.0 / model_p
     return (market_price / fair_price) - 1.0
-
