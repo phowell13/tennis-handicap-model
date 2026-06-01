@@ -4,10 +4,11 @@ from pathlib import Path
 DATA_PATH = Path("data") / "2026-wta-season.csv"
 
 def load_raw() -> pd.DataFrame:
-    # Auto-detect delimiter (comma, tab, semicolon, etc.)
+    # Auto-detect delimiter
     return pd.read_csv(DATA_PATH, sep=None, engine="python")
 
 def build_player_surface_stats(df: pd.DataFrame) -> pd.DataFrame:
+
     # HOME rows
     home = df.rename(columns={
         "home_name": "player",
@@ -15,10 +16,12 @@ def build_player_surface_stats(df: pd.DataFrame) -> pd.DataFrame:
         "home_return_points_won_perc": "ret_pts_won",
         "home_break_points_won_perc": "bp_won",
         "home_break_points_saved_perc": "bp_saved",
-    })[
-        ["player", "surface", "season_year",
-         "srv_pts_won", "ret_pts_won", "bp_won", "bp_saved"]
-    ]
+    })
+
+    home = home[[
+        "player", "surface", "season_year",
+        "srv_pts_won", "ret_pts_won", "bp_won", "bp_saved"
+    ]]
 
     # AWAY rows
     away = df.rename(columns={
@@ -27,10 +30,12 @@ def build_player_surface_stats(df: pd.DataFrame) -> pd.DataFrame:
         "away_return_points_won_perc": "ret_pts_won",
         "away_break_points_won_perc": "bp_won",
         "away_break_points_saved_perc": "bp_saved",
-    })[
-        ["player", "surface", "season_year",
-         "srv_pts_won", "ret_pts_won", "bp_won", "bp_saved"]
-    ]
+    })
+
+    away = away[[
+        "player", "surface", "season_year",
+        "srv_pts_won", "ret_pts_won", "bp_won", "bp_saved"
+    ]]
 
     # Combine
     long = pd.concat([home, away], ignore_index=True)
