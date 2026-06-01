@@ -1,7 +1,6 @@
-# run_match.py
 from analytics.player_stats import load_raw, build_player_surface_stats, get_player_profile
 from analytics.serve_return_model import build_hold_return_profile
-from analytics.handicap_model import MatchParams, expected_games_diff
+from analytics.handicap_model import MatchParams, expected_games_diff, handicap_cover_prob
 from betting.betfair_market import HandicapMarket, edge
 
 def main():
@@ -25,19 +24,13 @@ def main():
         HandicapMarket(line=-1.5, price_a=1.38, price_b=5.40),
     ]
 
-    # TODO: plug in your handicap_cover_probability(diff, line) here
     for m in markets:
-        # placeholder: assume normal with sd=3.5
-        import math
-        sd = 3.5
-        z = (m.line - diff) / sd
-        from math import erf
-        phi = 0.5 * (1 + erf(z / math.sqrt(2)))
-        p_cover = 1 - phi  # P(diff > line)
-
+        p_cover = handicap_cover_prob(diff, m.line)
         e = edge(p_cover, m.price_a)
-        print(f"Sabalenka {m.line:+.1f}: model p={p_cover:.3f}, edge vs {m.price_a} = {e*100:.1f}%")
+        print(
+            f"Sabalenka {m.line:+.1f}: model p={p_cover:.3f}, "
+            f"fair={1/p_cover:.2f}, market={m.price_a:.2f}, edge={e*100:.1f}%"
+        )
 
 if __name__ == "__main__":
     main()
-
