@@ -1,15 +1,12 @@
-# analytics/player_stats.py
 import pandas as pd
 from pathlib import Path
 
 DATA_PATH = Path("data") / "2026-wta-season.csv"
 
-def load_raw():
-    df = pd.read_csv(DATA_PATH, sep="\t")  # you pasted tab-separated
-    return df
+def load_raw() -> pd.DataFrame:
+    return pd.read_csv(DATA_PATH, sep="\t")
 
 def build_player_surface_stats(df: pd.DataFrame) -> pd.DataFrame:
-    # stack home/away into one long table
     home = df.rename(columns={
         "home_name": "player",
         "home_service_points_won_perc": "srv_pts_won",
@@ -47,18 +44,19 @@ def build_player_surface_stats(df: pd.DataFrame) -> pd.DataFrame:
     )
     return agg
 
-def get_player_profile(agg: pd.DataFrame, player: str, surface: str = "clay", season: int = 2026):
-    row = (
-        agg[(agg["player"] == player) &
-            (agg["surface"].str.lower() == surface.lower()) &
-            (agg["season_year"] == season)]
-        .sort_values("matches", ascending=False)
-        .iloc[0]
-    )
+def get_player_profile(agg: pd.DataFrame, player: str, surface: str = "clay", season: int = 2026) -> dict:
+    subset = agg[
+        (agg["player"] == player) &
+        (agg["surface"].str.lower() == surface.lower()) &
+        (agg["season_year"] == season)
+    ]
+    if subset.empty:
+        raise ValueError(f"No stats for {player} on {surface} in {season}")
+    row = subset.sort_values("matches", ascending=False).iloc[0]
     return {
         "name": row["player"],
         "surface": row["surface"],
-        "season": row["season_year"],
+        "season": int(row["season_year"]),
         "matches": int(row["matches"]),
         "srv_pts_won": row["srv_pts_won"] / 100.0,
         "ret_pts_won": row["ret_pts_won"] / 100.0,
