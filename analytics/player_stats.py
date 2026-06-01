@@ -4,13 +4,64 @@ from pathlib import Path
 
 DATA_PATH = Path("data") / "2026-wta-season.csv"
 
-def load_stats():
-    return pd.read_csv(DATA_PATH)
+def load_raw():
+    df = pd.read_csv(DATA_PATH, sep="\t")  # you pasted tab-separated
+    return df
 
-def get_player_surface_row(df, player_name: str, surface: str = "clay"):
-    df_p = df[df["player"] == player_name]
-    if "surface" in df.columns:
-        df_p = df_p[df_p["surface"] == surface]
-    # last row / latest date / best aggregation – we can refine once I see columns
-    return df_p.sort_values("date").iloc[-1]
+def build_player_surface_stats(df: pd.DataFrame) -> pd.DataFrame:
+    # stack home/away into one long table
+    home = df.rename(columns={
+        "home_name": "player",
+        "home_service_points_won_perc": "srv_pts_won",
+        "home_return_points_won_perc": "ret_pts_won",
+        "home_break_points_won_perc": "bp_won",
+        "home_break_points_saved_perc": "bp_saved",
+        "surface": "surface",
+        "season_year": "season_year",
+    })[["player", "surface", "season_year", "srv_pts_won", "ret_pts_won", "bp_won", "bp_saved"]]
 
+    away = df.rename(columns={
+        "away_name": "player",
+        "away_service_points_won_perc": "srv_pts_won",
+        "away_return_points_won_perc": "ret_pts_won",
+        "away_break_points_won_perc": "bp_won",
+        "away_break_points_saved_perc": "bp_saved",
+        "surface": "surface",
+        "season_year": "season_year",
+    })[["player", "surface", "season_year", "srv_pts_won", "ret_pts_won", "bp_won", "bp_saved"]]
+
+    long = pd.concat([home, away], ignore_index=True)
+
+    agg = (
+        long
+        .dropna(subset=["srv_pts_won", "ret_pts_won"])
+        .groupby(["player", "surface", "season_year"])
+        .agg(
+            matches=("srv_pts_won", "count"),
+            srv_pts_won=("srv_pts_won", "mean"),
+            ret_pts_won=("ret_pts_won", "mean"),
+            bp_won=("bp_won", "mean"),
+            bp_saved=("bp_saved", "mean"),
+        )
+        .reset_index()
+    )
+    return agg
+
+def get_player_profile(agg: pd.DataFrame, player: str, surface: str = "clay", season: int = 2026):
+    row = (
+        agg[(agg["player"] == player) &
+            (agg["surface"].str.lower() == surface.lower()) &
+            (agg["season_year"] == season)]
+        .sort_values("matches", ascending=False)
+        .iloc[0]
+    )
+    return {
+        "name": row["player"],
+        "surface": row["surface"],
+        "season": row["season_year"],
+        "matches": int(row["matches"]),
+        "srv_pts_won": row["srv_pts_won"] / 100.0,
+        "ret_pts_won": row["ret_pts_won"] / 100.0,
+        "bp_won": row["bp_won"] / 100.0,
+        "bp_saved": row["bp_saved"] / 100.0,
+    }
