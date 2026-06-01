@@ -7,8 +7,8 @@ def main():
     df = load_raw()
     agg = build_player_surface_stats(df)
 
-    sab = build_hold_return_profile(get_player_profile(agg, "Aryna Sabalenka", "clay"))
-    osa = build_hold_return_profile(get_player_profile(agg, "N Osaka", "clay"))
+    sab = build_hold_return_profile(get_player_profile(agg, "Sabalenka A.", "clay"))
+    osa = build_hold_return_profile(get_player_profile(agg, "Osaka N.", "clay"))
 
     params = MatchParams()
     g1, g2 = expected_games_diff(sab, osa, params)
