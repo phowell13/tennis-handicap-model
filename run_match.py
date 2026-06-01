@@ -1,19 +1,19 @@
 from analytics.player_stats import load_raw, build_player_surface_stats, get_player_profile
 from analytics.serve_return_model import build_hold_return_profile
-from analytics.handicap_model import MatchParams, expected_games_diff, handicap_cover_prob
+from analytics.simulator import MatchConfig, handicap_cover_prob_mc
 from betting.betfair_market import HandicapMarket, edge
 
 def main():
     df = load_raw()
     agg = build_player_surface_stats(df)
 
-    sab = build_hold_return_profile(get_player_profile(agg, "Sabalenka A.", "clay"))
-    osa = build_hold_return_profile(get_player_profile(agg, "Osaka N.", "clay"))
+    # Use actual names from your dataset and surface you want
+    sab = build_hold_return_profile(get_player_profile(agg, "Sabalenka A.", "hard"))
+    osa = build_hold_return_profile(get_player_profile(agg, "Osaka N.", "hard"))
 
-    params = MatchParams()
-    g1, g2 = expected_games_diff(sab, osa, params)
-    diff = g1 - g2
-    print(f"Expected games: Sabalenka {g1:.2f} – Osaka {g2:.2f} (diff {diff:.2f})")
+    cfg = MatchConfig()
+
+    print(f"Sabalenka hold={sab['hold']:.3f}, Osaka hold={osa['hold']:.3f}")
 
     markets = [
         HandicapMarket(line=-6.5, price_a=5.0,  price_b=1.25),
@@ -25,7 +25,7 @@ def main():
     ]
 
     for m in markets:
-        p_cover = handicap_cover_prob(diff, m.line)
+        p_cover = handicap_cover_prob_mc(sab["hold"], osa["hold"], m.line, cfg, n_sims=50000)
         e = edge(p_cover, m.price_a)
         print(
             f"Sabalenka {m.line:+.1f}: model p={p_cover:.3f}, "
