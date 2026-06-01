@@ -8,8 +8,8 @@ def main():
     agg = build_player_surface_stats(df)
 
     # Use actual names from your dataset and surface you want
-    sab = build_hold_return_profile(get_player_profile(agg, "Sabalenka A.", "hard"))
-    osa = build_hold_return_profile(get_player_profile(agg, "Osaka N.", "hard"))
+    sab = build_hold_return_profile(get_player_profile(agg, "Naef C.", "clay"))
+    osa = build_hold_return_profile(get_player_profile(agg, "Inglis M.", "clay"))
 
     cfg = MatchConfig()
 
