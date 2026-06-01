@@ -25,6 +25,7 @@ def main():
     ]
 
     for m in markets:
+        print("DEBUG line =", m.line)
         p_cover = handicap_cover_prob_mc(sab["hold"], osa["hold"], m.line, cfg, n_sims=50000)
         e = edge(p_cover, m.price_a)
         print(
